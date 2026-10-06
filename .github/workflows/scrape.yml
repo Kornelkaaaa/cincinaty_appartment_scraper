@@ -17,6 +17,10 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # Fine-grained token with Contents: read/write on the public page repo (see README).
+      PAGES_TOKEN: ${{ secrets.PAGES_TOKEN }}
+      PAGES_REPO: ${{ vars.PAGES_REPO || format('{0}/oakley-listings', github.repository_owner) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -60,3 +64,18 @@ jobs:
           name: oakley-listings
           path: site
           retention-days: 30
+
+      # Publish only the generated page to a separate public repo served by GitHub Pages,
+      # so this repo (code + config) can stay private. Skipped until PAGES_TOKEN is set.
+      - name: Publish page
+        if: env.PAGES_TOKEN != ''
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          personal_token: ${{ env.PAGES_TOKEN }}
+          external_repository: ${{ env.PAGES_REPO }}
+          publish_branch: gh-pages
+          publish_dir: site
+          force_orphan: true   # keep the page repo to a single commit, no history pile-up
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+          commit_message: Update listings

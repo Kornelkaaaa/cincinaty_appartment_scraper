@@ -30,7 +30,16 @@ Sources: `craigslist`, `zillow`, `apartments_com`, `property_managers`.
 ## Scheduled runs (GitHub Actions)
 `.github/workflows/scrape.yml` runs at 7:00 and 17:00 Cincinnati time and keeps `seen.json` in the Actions cache so "NEW" badges work. To trigger it by hand: Actions tab → *Scrape listings* → *Run workflow*.
 
-To get the page: Actions tab → the latest run → **Artifacts → oakley-listings**. Download it, unzip it and open `index.html`. Artifacts are kept 30 days. Anyone you add as a collaborator on the repo (Settings → Collaborators) can download them too.
+### Shareable link (one-time setup)
+Each run publishes the page to a separate **public** repo, so this repo can stay private. The link is `https://kornelkaaaa.github.io/oakley-listings/`. The page asks search engines not to index it.
+
+1. Create a new **public** repo named `oakley-listings`. It can be empty.
+2. Create a token: GitHub → Settings → Developer settings → Personal access tokens → **Fine-grained tokens** → Generate. Under *Repository access*, choose *Only select repositories* → `oakley-listings`. Under *Permissions → Contents*, choose **Read and write**.
+3. In **this** repo: Settings → Secrets and variables → Actions → *New repository secret*. Name it `PAGES_TOKEN` and paste the token.
+4. Actions → *Scrape listings* → *Run workflow*.
+5. In `oakley-listings`: Settings → Pages → *Deploy from a branch* → `gh-pages` / `(root)` → Save. After a minute or two the link works.
+
+Until `PAGES_TOKEN` is set, the page is still uploaded as a downloadable artifact on each run (Actions → run → Artifacts). The token expires on the date you chose, so make a new one then.
 
 The scheduled run uses Craigslist and your property-manager sites only, because Zillow and Apartments.com block GitHub's servers. For those, run locally with `--show-browser`.
 
