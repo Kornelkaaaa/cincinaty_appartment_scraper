@@ -1,0 +1,47 @@
+# Oakley (Cincinnati, OH) apartment scraper configuration
+area:
+  zip: "45209"
+  neighborhood: "Oakley"
+  radius_miles: 1
+
+filters:
+  min_price: 800          # null to disable
+  max_price: 2200         # null to disable
+  min_beds: 1             # 0 = studios allowed
+  min_baths: null
+  pets: any               # any | cats | dogs  (listings with unknown pet policy are kept)
+  exclude_keywords:
+    - sublet
+    - sublease
+    - room for rent
+    - roommate
+
+scraping:
+  max_pages: 3            # per source
+  delay_seconds: [2, 5]   # random delay between requests
+  headless: true          # false (or --show-browser) = visible browser; lets you solve captchas
+  captcha_wait: 120       # seconds to wait for you to solve a captcha in the visible browser
+  craigslist_details: true      # open each Craigslist post for baths/sqft/pets
+  craigslist_max_details: 60
+
+sources:
+  craigslist: true
+  zillow: true
+  apartments_com: true
+  # Local property managers / complex websites. Add the Oakley complexes you care about.
+  # Each entry needs a URL listing available units and CSS selectors for one unit "card".
+  # Set `browser: true` for sites that render units with JavaScript.
+  property_managers:
+    - name: Example Oakley Complex (edit me)
+      enabled: false
+      url: https://example.com/floorplans
+      browser: true
+      address: "Oakley, Cincinnati, OH 45209"
+      selectors:
+        card: ".floorplan-card"
+        title: ".floorplan-name"
+        price: ".rent"
+        beds: ".beds"
+        baths: ".baths"
+        sqft: ".sqft"
+        link: "a"
