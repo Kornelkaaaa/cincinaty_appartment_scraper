@@ -1,0 +1,62 @@
+name: Scrape listings
+
+on:
+  schedule:
+    # 7:00 and 17:00 Cincinnati time (EDT; one hour earlier in winter)
+    - cron: "0 11,21 * * *"
+  workflow_dispatch: {}   # "Run workflow" button on the Actions tab
+
+permissions:
+  contents: read
+
+concurrency:
+  group: scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          python -m playwright install --with-deps chromium
+
+      # seen.json lets the page flag listings that are new since the previous run.
+      - name: Restore listing history
+        uses: actions/cache/restore@v4
+        with:
+          path: seen.json
+          key: seen-${{ github.run_id }}
+          restore-keys: seen-
+
+      # Zillow / Apartments.com always captcha-block GitHub's servers, so the
+      # scheduled run uses only the sources that work unattended.
+      - name: Scrape
+        run: |
+          mkdir -p site
+          python main.py --sources craigslist,property_managers \
+            --out site/listings.md --html site/index.html --state seen.json
+
+      - name: Save listing history
+        if: always() && hashFiles('seen.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: seen.json
+          key: seen-${{ github.run_id }}
+
+      # Download from the run page (Actions tab -> run -> Artifacts), unzip, open index.html.
+      - name: Upload page
+        uses: actions/upload-artifact@v4
+        with:
+          name: oakley-listings
+          path: site
+          retention-days: 30

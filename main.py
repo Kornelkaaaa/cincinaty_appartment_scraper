@@ -4,6 +4,7 @@ Usage:
     python main.py                          # all enabled sources
     python main.py --sources craigslist     # just one (craigslist, zillow, apartments_com, property_managers)
     python main.py --out oakley.md --show-browser
+    python main.py --html site/index.html   # filterable web page (default: listings.html)
 """
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from pathlib import Path
 from scraper.config import load_config
 from scraper.dedupe import dedupe
 from scraper.filters import apply_filters
+from scraper.html_report import render_html
 from scraper.models import Listing
 from scraper.report import render
 from scraper.sources.apartments_com import ApartmentsCom
@@ -62,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Scrape Oakley, Cincinnati apartment listings to Markdown.")
     ap.add_argument("--config", default="config.yaml")
     ap.add_argument("--out", default="listings.md")
+    ap.add_argument("--html", default="listings.html", help="filterable web page ('' to skip)")
     ap.add_argument("--state", default="seen.json")
     ap.add_argument("--sources", help="comma-separated: " + ",".join(SOURCES))
     ap.add_argument("--show-browser", action="store_true", help="run Playwright non-headless")
@@ -95,6 +98,9 @@ def main(argv: list[str] | None = None) -> int:
     listings = apply_filters(dedupe(all_listings), cfg["filters"])
     mark_new(listings, args.state)
     Path(args.out).write_text(render(listings, cfg, status), encoding="utf-8")
+    if args.html:
+        Path(args.html).parent.mkdir(parents=True, exist_ok=True)
+        Path(args.html).write_text(render_html(listings, cfg, status), encoding="utf-8")
     logging.getLogger("scraper").info(
         "Wrote %d listings (%d new) to %s", len(listings), sum(l.is_new for l in listings), args.out
     )

@@ -3,3 +3,5 @@ __pycache__/
 .venv/
 seen.json
 listings.md
+listings.html
+site/

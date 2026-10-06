@@ -24,7 +24,15 @@ Sources: `craigslist`, `zillow`, `apartments_com`, `property_managers`.
 - `sources.property_managers`: add your own Oakley complexes. Each entry needs the page URL that lists units/floorplans, plus CSS selectors for one unit card (`card`, `title`, `price`, `beds`, `baths`, `sqft`, `link`). To find them, open the page in Chrome, right-click a unit, choose *Inspect*, and copy the class names. Set `browser: true` if the units load via JavaScript (most RentCafe/Entrata sites do).
 
 ## Output
+- `listings.html`: a filterable web page (price, beds, baths, pets, source, search, sort). Favorites ⭐ and hidden 🗑 listings are remembered in your browser.
 `listings.md` contains a sources status table (including failures), a "🆕 New since last run" section, and all matching listings sorted by price. `seen.json` remembers listings between runs, so delete it to reset "new" tracking.
+
+## Scheduled runs (GitHub Actions)
+`.github/workflows/scrape.yml` runs at 7:00 and 17:00 Cincinnati time and keeps `seen.json` in the Actions cache so "NEW" badges work. To trigger it by hand: Actions tab → *Scrape listings* → *Run workflow*.
+
+To get the page: Actions tab → the latest run → **Artifacts → oakley-listings**. Download it, unzip it and open `index.html`. Artifacts are kept 30 days. Anyone you add as a collaborator on the repo (Settings → Collaborators) can download them too.
+
+The scheduled run uses Craigslist and your property-manager sites only, because Zillow and Apartments.com block GitHub's servers. For those, run locally with `--show-browser`.
 
 ## Notes on reliability
 - **Craigslist** works reliably with plain HTTP.
